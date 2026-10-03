@@ -359,7 +359,7 @@ docs/             Architecture, protocol, failure analysis
 
 🏗️ [System Architecture](docs/architecture/system-architecture.md)
 
-📡 [Communication Protocol](docs/architecture/protocol.md)
+📡 [Communication Protocol](docs/communication/beacon-protocol.md)
 
 ⚠️ [Failure Cases](docs/failure-analysis/failure-cases.md)
 
