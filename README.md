@@ -1,192 +1,408 @@
-# THE LIVING MAP — Spatial Memory for Emergency Robots
+# 🗺️ THE LIVING MAP
 
-**TSYP14 Technical Challenge** — IEEE RAS × IEEE AESS Tunisia Section Chapters
-Team **Living Map** — ENIB Bizerte, Tunisia
+### Spatial Memory for Emergency Robots
 
-> Give the environment a memory that survives the robot.
+**TSYP14 Technical Challenge — The Living Map**
+**IEEE RAS × IEEE AESS Tunisia Section**
+**IEEE ENIB Student Branch — Tunisia**
 
-A Writer robot explores a GPS-denied, partially-observable environment,
-decides what's worth preserving, and deploys small radio beacons —
-persistent spatial memory that survives even if the Writer itself fails.
-An Executor robot later inherits that memory, navigates to it without ever
-having seen the tunnel layout itself, and **verifies or contradicts** what
-it finds — so the Living Map evolves as new information arrives, rather
-than being a static log of what one robot once saw.
+> **Give the environment a memory that survives the robot.**
 
-**Adaptive Mission-Aware Spatial Memory.** The system preserves information that stays useful after the
-robot that found it is gone: *selective preservation* (the Writer decides what must survive and where),
-*spatial memory* (the knowledge lives in beacons placed in the environment), *temporal ageing* (every
-record carries its own time and loses confidence), *verification* (executors confirm, clear or contradict
-what they find), *dynamic updates* (a blockage that appears later is discovered, preserved and routed
-around), *communication-aware placement* (beacons also form the relay chain that gets the memory out) and
-*mission-aware use* (the Command Post turns the Living Map into prioritised missions for specialised
-executors). This is a software/simulation proof of concept, not a revolutionary AI system.
+---
 
-This is the **Phase 1 software foundation**: a seeded, headless-capable simulation of the required chain
+## 🚨 The Challenge
 
+Emergency robots operating inside **GPS-denied environments such as mines and tunnels** face a fundamental problem:
+
+A robot may discover critical information — a fire, gas infiltration, victim, blocked passage — and then leave the area, lose communication, or fail.
+
+When the next robot enters, should it have to start from zero?
+
+**The Living Map explores a different approach: give the environment its own persistent spatial memory.**
+
+---
+
+## 💡 Our Approach
+
+We are developing an **Adaptive Mission-Aware Spatial Memory** system in which information discovered by one robot can remain useful after that robot is gone.
+
+Instead of keeping knowledge only inside a robot, the system preserves selected information in **distributed radio beacons** placed throughout the environment.
+
+The information can then be:
+
+**discovered → preserved → communicated → verified → updated → reused**
+
+As the environment changes, the map changes with it.
+
+---
+
+## 🧠 System Architecture
+
+```text
+                 GPS-DENIED ENVIRONMENT
+              ┌───────────────────────────┐
+              │                           │
+              │      🤖 WRITER ROBOT      │
+              │      Explore & Sense      │
+              │            │              │
+              │            ▼              │
+              │      📡 BEACON NETWORK    │
+              │      Spatial Memory       │
+              │            │              │
+              │      Multi-hop Relay      │
+              │            │              │
+              └────────────┼──────────────┘
+                           ▼
+                    📡 ONA GATEWAY
+                  Outside Network Area
+                           │
+                           │ Wi-Fi
+                           ▼
+                    🖥️ COMMAND POST
+                  Living Map & Planning
+                           │
+                           │ Mission Brief
+                           ▼
+                 🤖 EXECUTOR FLEET
+             Fire • Gas • Victim • Debris
+                           │
+                           ▼
+                  Memory Verification
+                       & Update
+                           │
+                           └──────► Living Map
 ```
-Writer -> beacon memory / relay network -> ONA -> Command Post -> Executor fleet -> updated memory
+
+### Architectural Constraint
+
+There is **no direct Robot ↔ Command Post communication**.
+
+Information from the disconnected environment must pass through the **ONA and beacon communication network**.
+
+---
+
+## 🔄 The Living Map Loop
+
+The system is built around a continuous information cycle:
+
+```text
+SENSE
+  ↓
+LOCALIZE
+  ↓
+UNDERSTAND
+  ↓
+PRESERVE CRITICAL INFORMATION
+  ↓
+STORE IN SPATIAL MEMORY
+  ↓
+COMMUNICATE THROUGH BEACONS
+  ↓
+COMMAND POST UPDATES THE LIVING MAP
+  ↓
+PRIORITIZE & ASSIGN A MISSION
+  ↓
+EXECUTOR USES INHERITED MEMORY
+  ↓
+VERIFY / DISCOVER CHANGES
+  ↓
+UPDATE THE MEMORY
+  ↓
+NEXT MISSION
 ```
 
-with **no direct robot <-> Command Post link** (enforced by tests). Everything physical (radio, world,
-sensors, actuators) is **simulated**; nothing in this repository is a hardware measurement.
+The objective is not simply to record what a robot saw.
 
-## Quick start
+It is to preserve **what may still be useful for the next mission**.
+
+---
+
+## ✨ Key Concepts
+
+### 🧭 Autonomous Exploration
+
+The Writer explores a partially unknown environment using frontier-based exploration rather than following a fixed route.
+
+It builds its own discovered map, handles obstacles and dead ends, and can return to the entry point.
+
+### 📡 Spatial Memory & Multi-hop Communication
+
+Beacons act as persistent memory nodes and communication relays.
+
+Information from deeper parts of the tunnel can travel through neighboring beacons toward the ONA using a simulated multi-hop network.
+
+### 🌍 Local → Global Coordinates
+
+The Writer maintains a local pose `(x, y, θ)`.
+
+The ONA transforms local coordinates into a global geographic reference used by the Command Post.
+
+### 🧠 Adaptive Memory
+
+Memory records contain information such as:
+
+* event type
+* local and global coordinates
+* severity
+* confidence
+* timestamps and age
+* source
+* version
+* verification status
+* passage accessibility
+
+Information can evolve from:
+
+`UNVERIFIED → VERIFIED → ACTIVE → CLEARED`
+
+or become:
+
+`CONTRADICTED / ESCALATED`
+
+### 🔀 Dynamic Environment
+
+The environment is not assumed to remain static.
+
+For example, debris may appear **after the Writer has already left**.
+
+An Executor can discover the change, re-plan around it, preserve the new information, and update the Living Map.
+
+### 🤖 Mission-Aware Executor Fleet
+
+The Command Post matches missions with available executor capabilities:
+
+| Executor  | Main mission                    |
+| --------- | ------------------------------- |
+| 🔥 FIRE   | Fire / thermal response         |
+| 🧍 VICTIM | Victim investigation / response |
+| ☁️ GAS    | Gas infiltration investigation  |
+| 🧱 DEBRIS | Blockage / debris removal       |
+
+Executors report their mission results and return to an operational state for future missions, or report failure/service requirements.
+
+---
+
+## 🎬 Phase 1 Simulations
+
+The repository contains several complementary simulations rather than relying on one scenario.
+
+### 1. Global Living Map
+
+Demonstrates the complete system:
+
+**Writer → Beacons → ONA → Command Post → Executor → Memory Update**
+
+### 2. Writer Exploration
+
+Focuses on:
+
+* autonomous exploration
+* map coverage
+* dead ends
+* obstacles
+* alternative paths
+* event discovery
+* return to entry
+
+### 3. Executor Fleet
+
+Starts from an existing Living Map and demonstrates:
+
+* priority analysis
+* executor selection
+* mission assignment
+* navigation
+* task execution
+* memory verification
+* return
+* fleet availability
+
+### 4. Dynamic Debris
+
+Demonstrates a changing environment:
+
+```text
+Writer leaves
+      ↓
+New debris appears
+      ↓
+Executor encounters unexpected blockage
+      ↓
+Re-planning
+      ↓
+Blockage preserved in memory
+      ↓
+Debris Executor dispatched
+      ↓
+Obstacle cleared
+      ↓
+Original mission continues
+```
+
+### 5. Living Map Comparison
+
+The project also includes a simulation comparison between:
+
+**Executor without inherited memory**
+
+and
+
+**Executor using the Living Map**
+
+using the same simulated environment to measure mission behavior.
+
+---
+
+## 🧪 Phase 1 Software Proof of Concept
+
+This repository provides the **software and simulation foundation** for the project.
+
+### Implemented / Simulated
+
+* Autonomous Writer exploration
+* Dynamic obstacle handling
+* Persistent spatial memory
+* Blockage memory
+* Multi-hop beacon communication
+* Packet validation and retry
+* ONA gateway
+* Local-to-global coordinate transformation
+* Living Map
+* Memory ageing and versioning
+* Mission prioritization
+* Capability-based executor assignment
+* Specialized Executor state machines
+* Executor feedback and memory updates
+* Dynamic debris scenarios
+* Writer failure / memory continuity
+* Headless simulations
+* Automated test suite
+
+### Still Planned for the Physical Prototype
+
+* ESP32 robot hardware
+* physical LoRa communication
+* physical beacon deployment
+* real sensors and actuators
+* real-world localization validation
+* battery and sensor characterization
+
+The simulations model these future physical interfaces but **do not claim physical measurements**.
+
+---
+
+## 🚀 Quick Start
+
+### Install
 
 ```bash
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
+python -m venv .venv
+```
+
+Activate the environment and install dependencies:
+
+```bash
 pip install -r requirements.txt
-
-python -m pytest -q                                     # full test suite (headless)
-python -m simulation.global_demo --seed 42              # main showcase
-python -m simulation.writer_demo --seed 42              # exploration / coverage
-python -m simulation.fleet_demo --seed 42               # executor fleet + mission planning
-python -m simulation.dynamic_debris --seed 42           # debris appears after the Writer left
-python -m simulation.compare_memory --seeds 6           # with vs without inherited memory
-python run_simulation.py --seed 42                      # interactive pygame window
 ```
 
-Full guide: [`docs/phase1_demo.md`](docs/phase1_demo.md). Requirement table:
-[`docs/phase1_traceability.md`](docs/phase1_traceability.md).
+### Run tests
 
-## The problem
-
-A Writer can discover critical information (fire, gas, victims, blocked passages) in a GPS-denied space and
-then fail, run out of power, or leave. Without persistence the next robot starts from zero. The environment
-therefore needs a memory.
-
-## What was added in the Phase-1 patch
-
-| Area | Before | Now |
-|---|---|---|
-| Communication | Writer -> `MockTransport` -> ONA (direct delivery) | simulated spatial radio: range + walls, multi-hop beacon chain, ACK/retry, TTL, duplicate suppression, store-and-forward, heartbeats |
-| Writer | frontier exploration, coordinates read from the map cell, stopped when the budget ran out | odometry pose (turn + forward), seeded frontier choice, blockage memory, bridge-on-demand relays, **returns to the entry without shutting down** |
-| Memory | event + coordinates | versioned record: id, type, local + GPS coords, severity, confidence, source, times, age, status (UNVERIFIED / VERIFIED / ACTIVE / ESCALATED / CLEARED / CONTRADICTED), passage state, hop count |
-| Environment | static | debris can appear after the Writer left and be cleared |
-| Command Post | existing dispatcher | Living Map keyed by memory id, priority with explainable components, capability matching, fleet registry, brief composer |
-| Executor | one capability-agnostic run | specialised (FIRE / GAS / VICTIM / DEBRIS) state machine: ASSIGNED -> DEPLOYING -> ON_SITE -> WORKING -> VERIFYING -> UPDATE_MEMORY -> RETURNING -> AVAILABLE, plus FAILED / LOW_BATTERY / NEEDS_REPAIR / NEEDS_CHARGING / OUT_OF_SERVICE |
-| ONA | could hand data on | receives, validates, translates local -> GPS, buffers, carries; **never plans** |
-
-Preserved from the previous revision: the 18-byte wire protocol and CRC-8, the coordinate-transform source of
-truth, the shared A* / frontier engine, the structural "no ground-truth cheating" test, the Living Map version
-guard, the dispatcher and benchmark, writer replacement, and all existing unit tests (a few were updated
-where the semantics legitimately changed - see below).
-
-## Interactive controls
-
-| Key / Button | Action |
-|---|---|
-| `W` / [DEPLOY WRITER] | Deploy a writer robot (works any time) |
-| `E` / [DISPATCH EXECUTOR] | Dispatch an executor (greyed-out when no candidates) |
-| `D` / [REPLACEMENT WRITER] | Deploy replacement writer (once W1 is offline) |
-| `P` / [PAUSE] | Pause / resume simulation |
-| [AUTO DISPATCH: ON/OFF] | Toggle event-driven executor dispatch |
-| `X` | Drop debris at a random reachable cell (dynamic environment) |
-| `SPACE` | Smart start: writer → executor (sequential path) |
-| `R` | Reset same scenario |
-| `Q` / Esc | Quit |
-
-## What you're watching (interactive UI)
-
-1. **Writer explores** - no map given. It senses a local radius, builds its own discovered map, picks frontier
-   targets, tracks a dead-reckoned pose, and decides what to preserve. Beacons appear as triangles (green = has a
-   route to the ONA, amber = buffering). Each record travels hop by hop to the ONA and then to the Command Post
-   as `UNVERIFIED`. The Writer then walks back to the entry; it does not shut down.
-
-2. **Concurrent operation** - with AUTO DISPATCH on, the Command Post ranks queued missions (class, status,
-   confidence, age, distance) and assigns an AVAILABLE executor of the right capability, even while the Writer is
-   still exploring. The brief reaches the executor only through the ONA mailbox.
-
-3. **Writer failure** - `force_writer_fail()` or `writer_fail_tick`: the Writer stops where it is; records already
-   delivered to the Command Post are unaffected.
-
-4. **Executor feedback loop** - it navigates with inherited memory, re-plans around anything that differs from it,
-   performs its task, writes its observation into a beacon (`VERIFIED / ACTIVE / ESCALATED / CLEARED /
-   CONTRADICTED`, version bumped), returns to the entry and becomes AVAILABLE (or NEEDS_REPAIR / NEEDS_CHARGING).
-
-5. **Dynamic environment** - press `X`: debris appears at a random reachable cell. Executors discover it by
-   sensing, preserve it as a BLOCKAGE record, and the Command Post decides what to do next.
-
-6. **Replacement writer** - `[REPLACEMENT WRITER]` deploys W2 with a blank discovered map and fresh beacon ids; its
-   reports of the same event are merged by the Command Post as corroboration.
-
-Click a row in the LIVING MAP panel to see that record's ONA detail (beacon, memory id, local and GPS coordinates,
-source, version, confidence, age, hops, communication state).
-
-## Benchmark mode
-
-Three configurations run against the same scenario for direct comparison:
-
-| Config | Description |
-|---|---|
-| **A Sequential** | Writer finishes → one executor dispatched (classic baseline) |
-| **B Concurrent** | Pool of 3 executors + auto-dispatch as beacons arrive |
-| **C No dispatch** | Writer only — no executor, no Living Map verification |
-
-```
-python run_simulation.py --benchmark --difficulty MEDIUM --seed 42
+```bash
+python -m pytest -q
 ```
 
-Config B demonstrates the core engineering claim: **the Living Map lets
-an executor respond to discoveries while the Writer is still exploring**,
-not after it finishes.
+### Run the demonstrations
 
-## Status
+```bash
+python -m simulation.global_demo --seed 42
 
-Labels: **IMPLEMENTED** (logic + tests), **SIMULATED** (modelled, not measured), **PLANNED**, **ASSUMED**, **MEASURED**.
+python -m simulation.writer_demo --seed 42
 
-| Feature | Status |
-|---|---|
-| Writer frontier exploration, odometry pose, return to entry | IMPLEMENTED / SIMULATED world |
-| Selective preservation + placement policy (event, relay, host reuse) | IMPLEMENTED |
-| Multi-hop beacon communication (range, walls, ACK/retry, TTL, dedupe, buffering) | IMPLEMENTED logic / SIMULATED radio |
-| Physical SX1278 LoRa radio, beacon firmware, drop mechanism | PLANNED (the LoRa transport is a stub) |
-| 18-byte beacon wire format, CRC-8/MAXIM, mesh frame, versioning | IMPLEMENTED |
-| ONA: validate, local -> GPS, buffer, forward, mailbox | IMPLEMENTED / SIMULATED links |
-| Local -> global coordinate transform (heading-aware) | IMPLEMENTED (mathematics) |
-| Real-world GPS / localisation accuracy | **NOT MEASURED** (no accuracy figure is claimed) |
-| Living Map lifecycle + ageing, Command Post planner, fleet registry | IMPLEMENTED |
-| Specialised executors + full state machine, failure branches | IMPLEMENTED / SIMULATED actuators |
-| Dynamic debris, blockage memory, policy-driven response | IMPLEMENTED / SIMULATED |
-| With-vs-without-memory comparison | IMPLEMENTED (simulation only, one arena) |
-| Physical prototype (ESP32 + sensors), battery life, sensor calibration | PLANNED (Phase 2) |
+python -m simulation.fleet_demo --seed 42
 
-## Honest notes on changed behaviour
+python -m simulation.dynamic_debris --seed 42
 
-* `WriterRobot.dead` is now a **legacy alias for "no longer exploring"**. The accurate field is `state`: `RETURNED`
-  (got home, still operational) or `DEAD` (failed). `max_ticks` bounds *exploration*; the way home is on top.
-* `ExecutorState.COMPLETED` is no longer a resting state: a healthy executor ends `AVAILABLE` at the entry.
-* Tests updated for those semantics: `test_writer_stops_within_tick_budget`, `test_writer_state_returned_after_exhausted`,
-  `test_executor_state_available_after_mission`, `test_living_map_accumulates_from_both_writers` (see the commit/patch diff).
-* The old README claimed 269 tests. The suite that was actually in the repository ran **224**; the number now is printed by `pytest -q`.
-* `common/coordinates.py` documented `heading` as a compass bearing; the code (and every test) implements
-  counter-clockwise-from-east. Only the documentation was wrong and has been corrected.
-
-## Known limitations
-
-Radio range and wall attenuation, task durations, priority weights, odometry (ideal by default), the GPS reference
-point and the beacon battery model are assumptions. Not validated physically: RF propagation, LoRa hardware,
-GPS/localisation accuracy, sensor calibration, battery performance, the beacon drop mechanism. The brief carries
-beacon positions and blockage records, not a corridor-level map: an obstruction between two beacons is
-discovered by sensing, not inherited.
-
-## Layout
-
-```
-common/           protocol (18-byte beacon + mesh frames), memory record, pose/odometry, clock, coordinates, enums, mission brief
-communication/    mesh.py (simulated spatial radio, RobotLink) / mock_transport.py (unit tests) / lora_transport.py (stub)
-beacon/           node.py (memory + relay), deployer.py (drop mechanism + stock), memory_node.py (legacy)
-gateway/          ONA gateway (receive, validate, translate, buffer, mailbox)
-writer_robot/     perception, exploration, memory_decision, placement, writer
-executor_robot/   capabilities, executor (state machine)
-command_post/     map_state (Living Map), planner, fleet, mission_dispatcher, command_post
-navigation/       A* + frontier engine + weighted re-planning
-simulation/       world, scenario, system (wiring), phase1 helpers, the demos, snapshot, renderer (pygame)
-tests/            pytest suite (headless)
-docs/             architecture, protocol, failure analysis, phase1_demo, phase1_traceability
+python -m simulation.compare_memory --seeds 6
 ```
 
-## Structural guarantees
+Interactive Pygame simulation:
 
-* No ground-truth cheating: `tests/test_world.py::test_robot_code_never_touches_ground_truth_internals`.
-* No direct robot -> Command Post path: `tests/test_architecture.py`.
+```bash
+python run_simulation.py --seed 42
+```
+
+---
+
+## 📊 Repository Structure
+
+```text
+common/           Protocols, memory, coordinates, poses, missions
+communication/    Simulated mesh / transport interfaces
+beacon/           Memory nodes, relay, deployment
+gateway/          ONA gateway
+writer_robot/     Exploration, perception, memory decisions
+executor_robot/   Executor capabilities and state machine
+command_post/     Living Map, planning, fleet management
+navigation/       A* and frontier exploration
+simulation/       World, scenarios, demos and visualization
+tests/            Automated tests
+docs/             Architecture, protocol, failure analysis
+```
+
+---
+
+## 📚 Documentation
+
+📘 [Phase 1 Demonstration Guide](docs/phase1_demo.md)
+
+📋 [Phase 1 Requirement Traceability](docs/phase1_traceability.md)
+
+🏗️ [System Architecture](docs/architecture/system-architecture.md)
+
+📡 [Communication Protocol](docs/architecture/protocol.md)
+
+⚠️ [Failure Cases](docs/architecture/failure-cases.md)
+
+---
+
+## 🎯 Project Vision
+
+The long-term vision is to evolve this first-generation demonstrator into a more capable emergency-robotics system with improved localization, communication, sensing, autonomous navigation and physical robustness.
+
+The architecture is designed so that better hardware can replace simulated components without changing the fundamental system concept:
+
+```text
+Simulation
+    ↓
+Technology Demonstrator
+    ↓
+Physical Prototype
+    ↓
+Advanced Multi-Robot System
+```
+
+---
+
+## 👥 Team
+
+**Team:** [Team Name]
+
+**IEEE ENIB Student Branch — Tunisia**
+
+**TSYP14 Technical Challenge — The Living Map**
+
+Developed for the **IEEE RAS × IEEE AESS Tunisia Section** technical challenge.
+
+---
+
+## 📌 Current Status
+
+**Phase 1 — Software / Simulation Proof of Concept**
+
+The repository is under active development as the project progresses toward the physical prototype.
+
+---
+
+### Core Idea
+
+> **When the robot is gone, the knowledge should remain.**
