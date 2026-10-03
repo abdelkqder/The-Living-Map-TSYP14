@@ -361,7 +361,7 @@ docs/             Architecture, protocol, failure analysis
 
 📡 [Communication Protocol](docs/architecture/protocol.md)
 
-⚠️ [Failure Cases](docs/architecture/failure-cases.md)
+⚠️ [Failure Cases](docs/failure-analysis/failure-cases.md)
 
 ---
 
