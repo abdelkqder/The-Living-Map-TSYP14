@@ -42,28 +42,28 @@ As the environment changes, the map changes with it.
                  GPS-DENIED ENVIRONMENT
               ┌───────────────────────────┐
               │                           │
-              │      🤖 WRITER ROBOT      │
+              │        WRITER ROBOT       │
               │      Explore & Sense      │
               │            │              │
               │            ▼              │
-              │      📡 BEACON NETWORK    │
+              │      BEACON NETWORK       │
               │      Spatial Memory       │
               │            │              │
               │      Multi-hop Relay      │
               │            │              │
               └────────────┼──────────────┘
                            ▼
-                    📡 ONA GATEWAY
+                      ONA GATEWAY
                   Outside Network Area
                            │
                            │ Wi-Fi
                            ▼
-                    🖥️ COMMAND POST
+                      COMMAND POST
                   Living Map & Planning
                            │
                            │ Mission Brief
                            ▼
-                 🤖 EXECUTOR FLEET
+                    EXECUTOR FLEET
              Fire • Gas • Victim • Debris
                            │
                            ▼
