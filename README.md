@@ -4,7 +4,6 @@
 
 **TSYP14 Technical Challenge — The Living Map**
 **IEEE RAS × IEEE AESS Tunisia Section**
-**IEEE ENIB Student Branch — Tunisia**
 
 > **Give the environment a memory that survives the robot.**
 
@@ -380,18 +379,6 @@ Physical Prototype
     ↓
 Advanced Multi-Robot System
 ```
-
----
-
-## 👥 Team
-
-**Team:** [Team Name]
-
-**IEEE ENIB Student Branch — Tunisia**
-
-**TSYP14 Technical Challenge — The Living Map**
-
-Developed for the **IEEE RAS × IEEE AESS Tunisia Section** technical challenge.
 
 ---
 
