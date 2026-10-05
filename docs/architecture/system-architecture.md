@@ -1,6 +1,6 @@
 # THE LIVING MAP — System Architecture (Phase 1)
 
-TSYP14 IEEE RAS × AESS Tunisia — Team Living Map, ENIB Bizerte
+TSYP14 IEEE RAS × AESS Tunisia 
 
 Status key used throughout this document and the codebase:
 **[IMPLEMENTED]** working code, covered by tests · **[SIMULATED]** modelled
