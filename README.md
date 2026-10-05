@@ -2,7 +2,7 @@
 
 ### Spatial Memory for Emergency Robots
 
-**TSYP14 Technical Challenge — The Living Map**
+**TSYP14 Technical Challenge — The Living Map: Spatial Memory for Emergency Robots **
 **IEEE RAS × IEEE AESS Tunisia Section**
 
 > **Give the environment a memory that survives the robot.**
